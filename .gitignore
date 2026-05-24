@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Database
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated data
+wallets/
+test_wallets/
+test_wallets_free/
+platform_accounts/
+sent_emails/
+affiliate_empire/
+real_belgian_setup/
+*.log
+
+# Node (frontend)
+node_modules/
+.next/

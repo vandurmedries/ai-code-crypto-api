@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.git/
+*.db
+test_wallets/
+test_wallets_free/
+platform_accounts/
+sent_emails/
+affiliate_empire/
+real_belgian_setup/
+wallets/
+*.log
+.DS_Store
