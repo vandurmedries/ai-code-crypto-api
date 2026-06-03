@@ -77,24 +77,17 @@ class TikTokAPIClient:
             logger.error(f"Failed to refresh TikTok token: {e}")
             return {"error": str(e)}
 
-    def init_publish_video_url(self, access_token: str, video_url: str, title: str, privacy_level: str = "PUBLIC_TO_EVERYONE") -> Dict[str, Any]:
+    def init_publish_video_url(self, access_token: str, video_url: str) -> Dict[str, Any]:
         """
         Initialize video publishing via URL pull (PULL_FROM_URL).
-        Returns post_id and status.
+        Endpoint: /v2/post/publish/inbox/video/init/
         """
-        url = f"{self.API_BASE}/post/publish/video/init/"
+        url = f"{self.API_BASE}/post/publish/inbox/video/init/"
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json"
         }
         payload = {
-            "post_info": {
-                "title": title,
-                "privacy_level": privacy_level,
-                "disable_duet": False,
-                "disable_stitch": False,
-                "disable_comment": False
-            },
             "source_info": {
                 "source": "PULL_FROM_URL",
                 "video_url": video_url
@@ -105,7 +98,70 @@ class TikTokAPIClient:
             res.raise_for_status()
             return res.json()
         except Exception as e:
-            logger.error(f"Failed to publish TikTok video from URL: {e}")
+            logger.error(f"Failed to initialize TikTok video from URL: {e}")
+            return {"error": str(e)}
+
+    def init_publish_video_file(self, access_token: str, video_size: int) -> Dict[str, Any]:
+        """
+        Initialize video publishing via direct file upload (FILE_UPLOAD).
+        Endpoint: /v2/post/publish/inbox/video/init/
+        """
+        url = f"{self.API_BASE}/post/publish/inbox/video/init/"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "source_info": {
+                "source": "FILE_UPLOAD",
+                "video_size": video_size,
+                "chunk_size": video_size,
+                "total_chunk_count": 1
+            }
+        }
+        try:
+            res = requests.post(url, headers=headers, json=payload, timeout=30)
+            res.raise_for_status()
+            return res.json()
+        except Exception as e:
+            logger.error(f"Failed to initialize TikTok video file upload: {e}")
+            return {"error": str(e)}
+
+    def upload_video_binary(self, upload_url: str, file_path: str, video_size: int) -> bool:
+        """
+        PUT local video binary content to TikTok's upload_url
+        """
+        headers = {
+            "Content-Range": f"bytes 0-{video_size-1}/{video_size}",
+            "Content-Type": "video/mp4"
+        }
+        try:
+            with open(file_path, "rb") as f:
+                res = requests.put(upload_url, headers=headers, data=f, timeout=120)
+                return res.status_code == 200
+        except Exception as e:
+            logger.error(f"Failed to PUT video content to TikTok: {e}")
+            return False
+
+    def fetch_publish_status(self, access_token: str, publish_id: str) -> Dict[str, Any]:
+        """
+        Fetch status of the published video
+        Endpoint: /v2/post/publish/status/fetch/
+        """
+        url = f"{self.API_BASE}/post/publish/status/fetch/"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json; charset=UTF-8"
+        }
+        payload = {
+            "publish_id": publish_id
+        }
+        try:
+            res = requests.post(url, headers=headers, json=payload, timeout=30)
+            res.raise_for_status()
+            return res.json()
+        except Exception as e:
+            logger.error(f"Failed to fetch TikTok publish status: {e}")
             return {"error": str(e)}
 
 
