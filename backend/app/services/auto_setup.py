@@ -140,14 +140,17 @@ class AutoSetupService:
     
     def _setup_auto_earn(self) -> Dict[str, Any]:
         """Setup auto-earn configuration"""
-        from app.services.ml_engine import get_ml_engine
+        from app.services.ml_engine import MLEngineService
+        from app.database import SessionLocal
         
-        engine = get_ml_engine()
-        
-        return {
-            "ml_engine_ready": engine is not None,
-            "ml_engine_ready": True
-        }
+        db = SessionLocal()
+        try:
+            engine = MLEngineService(db)
+            return {
+                "ml_engine_ready": engine is not None
+            }
+        finally:
+            db.close()
     
     def _init_affiliate(self) -> Dict[str, Any]:
         """Initialize affiliate earning system"""
@@ -233,7 +236,8 @@ class AutoSetupService:
     
     def _setup_mcp_context(self) -> Dict[str, Any]:
         """Setup MCP context sharing"""
-        from app.services.mcp_protocol import get_or_create_client, create_market_context
+        from app.routers.mcp import get_or_create_client
+        from app.services.mcp_protocol import create_market_context
         
         if self.system_user:
             client = get_or_create_client(self.system_user.id, "system@autonomous.ai")

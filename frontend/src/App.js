@@ -11,6 +11,7 @@ import A2A from './pages/A2A';
 import MCP from './pages/MCP';
 import Ruflo from './pages/Ruflo';
 import Affiliate from './pages/Affiliate';
+import TikTok from './pages/TikTok';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/mcp" element={<MCP />} />
 <Route path="/ruflo" element={<Ruflo />} />
 <Route path="/affiliate" element={<Affiliate />} />
+<Route path="/tiktok" element={<TikTok />} />
           </Route>
         </Routes>
       </Router>

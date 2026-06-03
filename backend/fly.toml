@@ -1,0 +1,25 @@
+app = 'ai-code-crypto-api'
+primary_region = 'ams'
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = 'suspend'
+  auto_start_machines = true
+  min_machines_running = 1
+
+[checks]
+  [checks.health]
+    type = "http"
+    port = 8000
+    path = "/api/v1/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '256mb'

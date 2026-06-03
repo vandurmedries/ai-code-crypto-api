@@ -1,0 +1,74 @@
+{
+    "is_running": true,
+    "accounts_count": 1,
+    "content_generated": 5,
+    "auto_posted": 3,
+    "est_revenue": 81.53,
+    "logs": [
+        {
+            "timestamp": "2026-06-03T20:07:48.921552",
+            "type": "money",
+            "message": "Auto Monetization: Received commission payout: +\u20ac61.34 from automated affiliate sales."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:48.921521",
+            "type": "success",
+            "message": "Auto Posting Schedule: Video uploaded successfully via Content Posting API to channel. Monetized via TikTok Shop Affiliate."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:48.921508",
+            "type": "success",
+            "message": "Auto Posting Schedule: Video uploaded successfully via Content Posting API to channel. Monetized via Creator Rewards Program."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:48.921471",
+            "type": "info",
+            "message": "Auto Content Generation: Generated AI video script: 'The dark secret behind smartphone battery life...' (Length: 45s)."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:48.921443",
+            "type": "info",
+            "message": "Auto Content Generation: Generated AI video script: 'Why the banks are lying to you about inflation...' (Length: 45s)."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:44.566415",
+            "type": "money",
+            "message": "Auto Monetization: Received commission payout: +\u20ac20.19 from automated affiliate sales."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:44.566390",
+            "type": "success",
+            "message": "Auto Posting Schedule: Video uploaded successfully via Content Posting API to channel. Monetized via TikTok Shop Affiliate."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:44.566377",
+            "type": "info",
+            "message": "Auto Content Generation: Generated AI video script: '3 Python library shortcuts you need to know today...' (Length: 45s)."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:44.566370",
+            "type": "info",
+            "message": "Auto Content Generation: Generated AI video script: '3 Python library shortcuts you need to know today...' (Length: 45s)."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:44.566362",
+            "type": "info",
+            "message": "Auto Content Generation: Generated AI video script: 'How this AI is quietly generating \u20ac500 a day...' (Length: 45s)."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:44.566333",
+            "type": "success",
+            "message": "Auto Account Creation: Successfully created TikTok channel @viral_tech_genius."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:44.566308",
+            "type": "info",
+            "message": "TikTok FULL AUTOMATION activated."
+        },
+        {
+            "timestamp": "2026-06-03T20:07:31.261557",
+            "type": "info",
+            "message": "TikTok automation system initialized."
+        }
+    ]
+}

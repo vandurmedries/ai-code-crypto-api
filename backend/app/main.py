@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from app.database import engine, Base, get_db
-from app.routers import auth, users, earnings, purchases, ml_engine, wallets, a2a, mcp, ruflo, affiliate, affiliate_empire, autonomous_setup, belgian_business, coding_agency, a2a_discovery, self_earning, wallet_earning, crypto_recovery, prompt_marketplace, repo_adopter, rewards_aggregator, passive_income, real_coding_agency, public_api
+from app.routers import auth, users, earnings, purchases, ml_engine, wallets, a2a, mcp, ruflo, affiliate, affiliate_empire, autonomous_setup, belgian_business, coding_agency, a2a_discovery, self_earning, wallet_earning, crypto_recovery, prompt_marketplace, repo_adopter, rewards_aggregator, passive_income, real_coding_agency, public_api, tiktok
 from app.services.scheduler import start_scheduler, stop_scheduler
 from app.services.auto_setup import run_autonomous_startup, get_auto_setup
 from app.services.system_monitor import get_system_monitor
@@ -64,6 +64,7 @@ app.include_router(rewards_aggregator.router, prefix="/api/rewards", tags=["rewa
 app.include_router(passive_income.router, prefix="/api/passive-income", tags=["passive-income"])
 app.include_router(real_coding_agency.router, prefix="/api/real-agency", tags=["real-coding-agency"])
 app.include_router(public_api.router, prefix="/api/v1", tags=["public-api"])
+app.include_router(tiktok.router, prefix="/api/tiktok", tags=["tiktok"])
 
 
 @app.get("/health")

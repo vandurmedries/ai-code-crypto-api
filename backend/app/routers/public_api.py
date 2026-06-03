@@ -14,13 +14,54 @@ Deploy on RapidAPI / APILayer to monetize.
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Header
 import logging
 import time
+import hashlib
+import secrets
 
 logger = logging.getLogger("PublicAPI")
 
 router = APIRouter(tags=["public-api"])
+
+# ---------------------------------------------------------------------------
+#  Lightning Network Paywall State & Helpers
+# ---------------------------------------------------------------------------
+# Stores: payment_hash -> {invoice, preimage, amount, paid, created_at}
+_lightning_invoices: Dict[str, Dict[str, Any]] = {}
+
+def _create_lightning_invoice(amount_sats: int, memo: str) -> Dict[str, Any]:
+    """Generates a cryptographically valid invoice and preimage pair"""
+    preimage = secrets.token_bytes(32)
+    preimage_hex = preimage.hex()
+    payment_hash = hashlib.sha256(preimage).hexdigest()
+    
+    # Mock BOLT11 invoice string representing the payment request
+    bolt11 = f"lnbc{amount_sats}n1p{payment_hash[:10]}...{memo.replace(' ', '_')}"
+    
+    invoice_data = {
+        "invoice": bolt11,
+        "payment_hash": payment_hash,
+        "preimage": preimage_hex,
+        "amount_sats": amount_sats,
+        "paid": False,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    _lightning_invoices[payment_hash] = invoice_data
+    return invoice_data
+
+def verify_lightning_payment(x_lightning_preimage: Optional[str] = Header(None)) -> bool:
+    """Verifies that the provided preimage hashes to a paid invoice"""
+    if not x_lightning_preimage:
+        return False
+    try:
+        payment_hash = hashlib.sha256(bytes.fromhex(x_lightning_preimage)).hexdigest()
+        if payment_hash in _lightning_invoices:
+            invoice = _lightning_invoices[payment_hash]
+            return invoice.get("paid", False)
+    except Exception:
+        pass
+    return False
 
 # ---------------------------------------------------------------------------
 #  In-memory usage tracker
@@ -31,6 +72,7 @@ _start_time = time.time()
 
 def _track(endpoint: str):
     _usage[endpoint] = _usage.get(endpoint, 0) + 1
+
 
 
 # ---------------------------------------------------------------------------
@@ -137,6 +179,45 @@ def api_usage():
 
 
 # ---------------------------------------------------------------------------
+#  LIGHTNING PAYWALL ENDPOINTS
+# ---------------------------------------------------------------------------
+
+@router.get("/payment/check/{payment_hash}", summary="Check Lightning invoice status")
+def check_payment_status(payment_hash: str):
+    """
+    Check if a generated Lightning invoice has been paid.
+    """
+    if payment_hash not in _lightning_invoices:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    invoice = _lightning_invoices[payment_hash]
+    return {
+        "payment_hash": payment_hash,
+        "paid": invoice["paid"],
+        "amount_sats": invoice["amount_sats"],
+        "created_at": invoice["created_at"]
+    }
+
+@router.post("/payment/simulate-pay/{payment_hash}", summary="Simulate paying a Lightning invoice")
+def simulate_payment(payment_hash: str):
+    """
+    Simulate paying a generated Lightning invoice (for sandbox testing).
+    Returns the preimage to be used in the 'X-Lightning-Preimage' header.
+    """
+    if payment_hash not in _lightning_invoices:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    
+    invoice = _lightning_invoices[payment_hash]
+    invoice["paid"] = True
+    
+    return {
+        "success": True,
+        "message": "Payment simulation successful!",
+        "preimage": invoice["preimage"],
+        "instructions": f"Pass this preimage in the 'X-Lightning-Preimage' HTTP header to call the API."
+    }
+
+
+# ---------------------------------------------------------------------------
 #  CODE ANALYSIS
 # ---------------------------------------------------------------------------
 
@@ -150,18 +231,36 @@ def _get_coding_agent():
     "/code/review",
     response_model=CodeReviewResponse,
     summary="Review code quality",
-    responses={400: {"model": ErrorResponse}},
+    responses={
+        400: {"model": ErrorResponse},
+        402: {"description": "Payment Required - returns BOLT11 invoice"}
+    },
 )
-def code_review(req: CodeReviewRequest):
+def code_review(req: CodeReviewRequest, x_lightning_preimage: Optional[str] = Header(None)):
     """
     Analyze source code and return a quality report.
 
-    - **code**: The source code to review
-    - **language**: Programming language (python, javascript, typescript, etc.)
-
-    Returns quality score (0-10), issue count, and actionable suggestions.
+    Requires a payment of 50 satoshis. If X-Lightning-Preimage is missing or unpaid,
+    this returns a 402 status code with a Lightning invoice.
     """
     _track("code/review")
+    
+    # 402 Paywall validation check
+    if not verify_lightning_payment(x_lightning_preimage):
+        invoice = _create_lightning_invoice(50, f"Code Review: {req.language}")
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "message": "Payment Required. Please pay the BOLT11 invoice.",
+                "invoice": invoice["invoice"],
+                "payment_hash": invoice["payment_hash"],
+                "amount_sats": invoice["amount_sats"],
+                "check_status_url": f"/api/v1/payment/check/{invoice['payment_hash']}",
+                "simulate_pay_url": f"/api/v1/payment/simulate-pay/{invoice['payment_hash']}",
+                "header_required": "X-Lightning-Preimage: <preimage>"
+            }
+        )
+
     try:
         agent = _get_coding_agent()
         response = agent.process_request({
@@ -203,14 +302,36 @@ def code_review(req: CodeReviewRequest):
         raise HTTPException(status_code=500, detail="Code analysis failed")
 
 
-@router.post("/code/suggest", summary="Get code improvement suggestions")
-def code_suggest(req: CodeSuggestRequest):
+@router.post(
+    "/code/suggest",
+    summary="Get code improvement suggestions",
+    responses={402: {"description": "Payment Required - returns BOLT11 invoice"}},
+)
+def code_suggest(req: CodeSuggestRequest, x_lightning_preimage: Optional[str] = Header(None)):
     """
     Get AI-powered suggestions to improve your code.
 
-    - **task**: One of `optimize`, `refactor`, `document`, `test`
+    Requires a payment of 50 satoshis. If X-Lightning-Preimage is missing or unpaid,
+    this returns a 402 status code with a Lightning invoice.
     """
     _track("code/suggest")
+    
+    # 402 Paywall validation check
+    if not verify_lightning_payment(x_lightning_preimage):
+        invoice = _create_lightning_invoice(50, f"Code Suggest: {req.task}")
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "message": "Payment Required. Please pay the BOLT11 invoice.",
+                "invoice": invoice["invoice"],
+                "payment_hash": invoice["payment_hash"],
+                "amount_sats": invoice["amount_sats"],
+                "check_status_url": f"/api/v1/payment/check/{invoice['payment_hash']}",
+                "simulate_pay_url": f"/api/v1/payment/simulate-pay/{invoice['payment_hash']}",
+                "header_required": "X-Lightning-Preimage: <preimage>"
+            }
+        )
+
     try:
         agent = _get_coding_agent()
         response = agent.process_request({

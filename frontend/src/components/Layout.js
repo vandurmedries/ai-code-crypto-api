@@ -10,7 +10,8 @@ import {
   Radio,
   Share2,
   Waves,
-  DollarSign
+  DollarSign,
+  Video
 } from 'lucide-react';
 
 const Layout = () => {
@@ -27,6 +28,7 @@ const Layout = () => {
     { path: '/mcp', label: 'MCP Protocol', icon: Share2 },
     { path: '/ruflo', label: 'Ruflo', icon: Waves },
     { path: '/affiliate', label: 'Autonomous Earn', icon: DollarSign },
+    { path: '/tiktok', label: 'TikTok Auto', icon: Video },
   ];
 
   return (

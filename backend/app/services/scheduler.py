@@ -93,6 +93,18 @@ def market_analysis_job():
         db.close()
 
 
+def tiktok_auto_job():
+    """Background job for automated TikTok posting simulator"""
+    try:
+        from app.services.tiktok_api import get_tiktok_manager
+        manager = get_tiktok_manager()
+        if manager.state.get("is_running"):
+            manager.simulate_cycle()
+            logger.info("TikTok background automation cycle executed successfully.")
+    except Exception as e:
+        logger.error(f"Error in tiktok_auto_job: {e}")
+
+
 def start_scheduler():
     """Start the background scheduler"""
     # Auto-earn job - runs every 30 seconds for active earning
@@ -122,8 +134,17 @@ def start_scheduler():
         replace_existing=True
     )
     
+    # TikTok auto job - runs every 60 seconds
+    scheduler.add_job(
+        tiktok_auto_job,
+        trigger=IntervalTrigger(seconds=60),
+        id="tiktok_auto",
+        name="TikTok Auto Job",
+        replace_existing=True
+    )
+    
     scheduler.start()
-    logger.info("Scheduler started with auto-earn, affiliate, and market analysis jobs")
+    logger.info("Scheduler started with auto-earn, affiliate, market analysis, and TikTok jobs")
     
     # Register with system monitor
     _monitor.register_component(

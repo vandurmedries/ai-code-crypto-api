@@ -74,14 +74,18 @@ class MLEngineService:
         features = self.get_user_features(user_id)
         
         # Simulated prediction (in production, this would use trained models)
-        base_potential = features[0][1] * 0.1  # 10% of total earned as potential
+        total_earned = float(features[0][1])
+        if np.isinf(total_earned) or np.isnan(total_earned):
+            total_earned = 1000.0
+            
+        base_potential = min(500.0, max(10.0, total_earned * 0.01))  # Cap base potential between 10 and 500
         market_factor = 1 + (features[0][9] - 0.5) * 0.4  # Market volatility factor
         
         predicted_earning = base_potential * market_factor
         confidence = min(0.95, 0.6 + (features[0][4] / 100))  # Higher confidence with more earning history
         
         return {
-            "predicted_earning": max(0, predicted_earning),
+            "predicted_earning": min(500.0, max(10.0, predicted_earning)),
             "confidence": confidence,
             "timeframe": "30_days",
             "factors": {
@@ -221,7 +225,7 @@ class MLEngineService:
             return None
         
         # Calculate actual earning (boosted for auto-run)
-        actual_earning = max(10.0, best_opportunity.potential_earning) * random.uniform(0.8, 1.5)
+        actual_earning = min(500.0, max(10.0, best_opportunity.potential_earning * random.uniform(0.8, 1.5)))
         
         # Create earning record
         earning = models.Earning(
